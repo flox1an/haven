@@ -36,7 +36,7 @@ func importOwnerNotes() {
 		endTimestamp := nostr.Timestamp(endTime.Unix())
 
 		filters := []nostr.Filter{{
-			Authors: []string{nPubToPubkey(config.OwnerNpub)},
+			Authors: nPubsToPubkeys(config.OwnerNpub),
 			Since:   &startTimestamp,
 			Until:   &endTimestamp,
 		}}
@@ -66,7 +66,7 @@ func importTaggedNotes() {
 	wdb := eventstore.RelayWrapper{Store: inboxDB}
 	filters := []nostr.Filter{{
 		Tags: nostr.TagMap{
-			"p": {nPubToPubkey(config.OwnerNpub)},
+			"p": nPubsToPubkeys(config.OwnerNpub),
 		},
 	}}
 
@@ -80,7 +80,7 @@ func importTaggedNotes() {
 			if len(tag) < 2 {
 				continue
 			}
-			if tag[1] == nPubToPubkey(config.OwnerNpub) {
+			if contains(nPubsToPubkeys(config.OwnerNpub), tag[1]) {
 				wdb.Publish(ctx, *ev.Event)
 				taggedImportedNotes++
 			}
@@ -96,7 +96,7 @@ func subscribeInbox() {
 	startTime := nostr.Timestamp(time.Now().Add(-time.Minute * 5).Unix())
 	filters := []nostr.Filter{{
 		Tags: nostr.TagMap{
-			"p": {nPubToPubkey(config.OwnerNpub)},
+			"p": nPubsToPubkeys(config.OwnerNpub),
 		},
 		Since: &startTime,
 	}}
@@ -110,7 +110,7 @@ func subscribeInbox() {
 			if len(tag) < 2 {
 				continue
 			}
-			if tag[1] == nPubToPubkey(config.OwnerNpub) {
+			if contains(nPubsToPubkeys(config.OwnerNpub), tag[1]) {
 				wdb.Publish(ctx, *ev.Event)
 				switch ev.Event.Kind {
 				case nostr.KindTextNote:
